@@ -131,6 +131,8 @@ legend.addTo(map);
 
 function pin(c){return L.divIcon({className:'',html:'<div style="width:20px;height:20px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:'+c+';border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5)"></div>',iconSize:[20,20],iconAnchor:[10,18],popupAnchor:[0,-16]});}
 
+function fmt(t){ if(!t) return ''; const d=new Date(t); if(isNaN(d)) return ''; return d.toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
+
 async function refresh(){
   const {data,error}=await db.from('staff').select('*').order('id');
   if(error){console.error(error);return;}
@@ -143,7 +145,7 @@ function render(){
     if(filter&&p.status!==filter)return;
     if(p.lat==null||p.lng==null)return;
     const m=L.marker([p.lat,p.lng],{icon:pin(STATUS[p.status].color)}).addTo(map);
-    m.bindPopup('<b>'+p.name+'</b><br>'+(p.city||'')+'<br><b style="color:'+STATUS[p.status].color+'">'+STATUS[p.status].label+'</b>'+(p.note?'<br><i>'+p.note+'</i>':''));
+    m.bindPopup('<b>'+p.name+'</b><br>'+(p.city||'')+'<br><b style="color:'+STATUS[p.status].color+'">'+STATUS[p.status].label+'</b>'+(p.note?'<br><i>'+p.note+'</i>':'')+(p.updated_at?'<br>🕒 '+fmt(p.updated_at):''));
     markers[p.id]=m;
   });
   const c={safe:0,help:0,pending:0,noresp:0};roster.forEach(p=>c[p.status]++);
@@ -153,7 +155,7 @@ function render(){
     order.map(o=>'<div class="card '+(filter===o[0]?'active':'')+'" onclick="setFilter(\''+o[0]+'\')"><div class="n" style="color:'+STATUS[o[0]].color+'">'+c[o[0]]+'</div><div class="l"><span class="dot" style="background:'+STATUS[o[0]].color+'"></span>'+o[1]+'</div></div>').join('');
   const ord={help:0,noresp:1,pending:2,safe:3};
   document.getElementById('list').innerHTML=roster.filter(p=>!filter||p.status===filter).sort((a,b)=>ord[a.status]-ord[b.status])
-    .map(p=>'<div class="staff" onclick="focusStaff('+p.id+')"><div class="row1"><span class="name">'+p.name+'</span><span class="badge" style="background:'+STATUS[p.status].color+'">'+STATUS[p.status].label+'</span></div>'+(p.city?'<div class="meta">📍 '+p.city+'</div>':'')+(p.note?'<div class="meta">📝 '+p.note+'</div>':'')+'</div>').join('');
+    .map(p=>'<div class="staff" onclick="focusStaff('+p.id+')"><div class="row1"><span class="name">'+p.name+'</span><span class="badge" style="background:'+STATUS[p.status].color+'">'+STATUS[p.status].label+'</span></div>'+(p.city?'<div class="meta">📍 '+p.city+'</div>':'')+(p.note?'<div class="meta">📝 '+p.note+'</div>':'')+(p.updated_at?'<div class="meta">🕒 '+fmt(p.updated_at)+'</div>':'')+'</div>').join('');
   document.getElementById('ts').textContent='Updated '+new Date().toLocaleTimeString();
 }
 function setFilter(k){filter=k;render();}
