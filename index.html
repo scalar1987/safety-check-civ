@@ -116,7 +116,6 @@ const STATUS={
   safe:{label:"Safe",color:css.getPropertyValue('--safe').trim()},
   help:{label:"Needs help",color:css.getPropertyValue('--help').trim()},
   pending:{label:"Awaiting",color:css.getPropertyValue('--pending').trim()},
-  noresp:{label:"No response",color:css.getPropertyValue('--noresp').trim()},
 };
 
 let roster=[], filter=null, markers={}, sel={status:null,lat:null,lng:null};
@@ -148,12 +147,12 @@ function render(){
     m.bindPopup('<b>'+p.name+'</b><br>'+(p.city||'')+'<br><b style="color:'+STATUS[p.status].color+'">'+STATUS[p.status].label+'</b>'+(p.note?'<br><i>'+p.note+'</i>':'')+(p.updated_at?'<br>🕒 '+fmt(p.updated_at):''));
     markers[p.id]=m;
   });
-  const c={safe:0,help:0,pending:0,noresp:0};roster.forEach(p=>c[p.status]++);
-  const order=[["safe","Safe"],["help","Help"],["pending","Await"],["noresp","No resp"]];
+  const c={safe:0,help:0,pending:0};roster.forEach(p=>{if(c[p.status]!=null)c[p.status]++;});
+  const order=[["safe","Safe"],["help","Help"],["pending","Await"]];
   document.getElementById('summary').innerHTML=
     '<div class="card '+(filter===null?'active':'')+'" onclick="setFilter(null)"><div class="n">'+roster.length+'</div><div class="l">Total</div></div>'+
     order.map(o=>'<div class="card '+(filter===o[0]?'active':'')+'" onclick="setFilter(\''+o[0]+'\')"><div class="n" style="color:'+STATUS[o[0]].color+'">'+c[o[0]]+'</div><div class="l"><span class="dot" style="background:'+STATUS[o[0]].color+'"></span>'+o[1]+'</div></div>').join('');
-  const ord={help:0,noresp:1,pending:2,safe:3};
+  const ord={help:0,pending:1,safe:2};
   document.getElementById('list').innerHTML=roster.filter(p=>!filter||p.status===filter).sort((a,b)=>ord[a.status]-ord[b.status])
     .map(p=>'<div class="staff" onclick="focusStaff('+p.id+')"><div class="row1"><span class="name">'+p.name+'</span><span class="badge" style="background:'+STATUS[p.status].color+'">'+STATUS[p.status].label+'</span></div>'+(p.city?'<div class="meta">📍 '+p.city+'</div>':'')+(p.note?'<div class="meta">📝 '+p.note+'</div>':'')+(p.updated_at?'<div class="meta">🕒 '+fmt(p.updated_at)+'</div>':'')+'</div>').join('');
   document.getElementById('ts').textContent='Updated '+new Date().toLocaleTimeString();
